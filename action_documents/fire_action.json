@@ -1,0 +1,10 @@
+{
+  "rule_id": "{{rule.id}}",
+  "context_message": "{{context.message}}",
+  "triggered": "{{context.timestamp}}",
+  "rule_name": "{{rule.name}}",
+  "alert_id": "{{alert.id}}",
+  "matching_docs": "{{context.matchingDocuments}}",
+  "grouping_key": "{{context.group}}",
+  "status": "active"
+}

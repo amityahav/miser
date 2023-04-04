@@ -1,0 +1,15 @@
+# Elasticsearch
+es_host: http://eseck-client.service.nldc1.consul:9200/
+es_username : ""
+es_password : ""
+alerts_index : alerts*
+
+# Miser
+sync_interval: 1s
+notifiers :
+  - type: webhook
+    name: AlertC
+    endpoint: http://127.0.0.1:5000/
+    retries: 1
+    headers:
+      Content-Type: application/json
