@@ -42,12 +42,13 @@ type Alert struct {
 }
 
 type AlertFields struct {
-	RuleId         string    `json:"rule_id"`
-	AlertId        string    `json:"alert_id"`
-	Status         string    `json:"status"`
-	ContextMessage string    `json:"context_message"`
-	Triggered      time.Time `json:"triggered"`
-	RuleName       string    `json:"rule_name"`
-	MatchingDocs   string    `json:"matching_docs"`
-	GroupingKey    string    `json:"grouping_key"`
+	RuleId         string                 `json:"rule_id"`
+	AlertId        string                 `json:"alert_id"`
+	Status         string                 `json:"status"`
+	ContextMessage string                 `json:"context_message"`
+	Triggered      time.Time              `json:"triggered"`
+	RuleName       string                 `json:"rule_name"`
+	MatchingDocs   string                 `json:"matching_docs"`
+	GroupingKey    string                 `json:"grouping_key"`
+	CustomData     map[string]interface{} `json:"custom_data"`
 }

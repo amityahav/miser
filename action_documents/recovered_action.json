@@ -6,5 +6,6 @@
   "alert_id": "{{alert.id}}",
   "matching_docs": "{{context.matchingDocuments}}",
   "grouping_key": "{{context.group}}",
-  "status": "resolved"
+  "status": "resolved",
+  "custom_data": {"key": "val"}
 }
