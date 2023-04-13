@@ -1,11 +1,16 @@
 {
   "rule_id": "{{rule.id}}",
-  "context_message": "{{context.message}}",
-  "triggered": "{{context.timestamp}}",
   "rule_name": "{{rule.name}}",
+  "rule_type": "{{rule.type}}",
   "alert_id": "{{alert.id}}",
+  "triggered": "{{context.timestamp}}",
+  "status": "resolved",
+  "context_message": "{{context.message}}",
+
   "matching_docs": "{{context.matchingDocuments}}",
   "grouping_key": "{{context.group}}",
-  "status": "resolved",
+
+  "value": "{{context.value}}",
+
   "custom_data": {"key": "val"}
 }
