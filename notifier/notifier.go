@@ -6,7 +6,7 @@ import (
 )
 
 type Notifier interface {
-	Notify([]*rules.Alert)
+	Notify([]rules.Alert)
 }
 
 func NewNotifier(n miser.Notifier) (Notifier, error) {

@@ -2,7 +2,7 @@
 es_host: http://eseck-client.service.nldc1.consul:9200/
 es_username : ""
 es_password : ""
-alerts_index : alerts*
+alerts_index : alerts
 
 # Miser
 sync_interval: 1s

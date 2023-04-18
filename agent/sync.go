@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/sirupsen/logrus"
 	"miser"
@@ -108,10 +107,10 @@ func (m *Miser) sync() error {
 	}
 
 	var (
-		alertsToNotify    []*rules.Alert
+		alertsToNotify    []rules.Alert
 		alertDocsToDelete []string
 	)
-	alertsMap := make(map[string][]*rules.Alert)
+	alertsMap := make(map[string][]*rules.AlertDoc)
 	statusToIndex := map[string]int{
 		"active":   0,
 		"resolved": 1,
@@ -119,16 +118,16 @@ func (m *Miser) sync() error {
 
 	for _, alert := range er.Hits.HitsArr {
 		a := alert
-		key := fmt.Sprintf("%s%s", a.Source.RuleId, a.Source.GroupingKey)
-		status := a.Source.Status
+		key := a.AlertFields.Alert.UniqueKey()
+		status := a.AlertFields.Alert.GetStatus()
 
 		if _, ok := alertsMap[key]; !ok {
-			alertsMap[key] = make([]*rules.Alert, 2)
+			alertsMap[key] = make([]*rules.AlertDoc, 2)
 		}
 
 		al := alertsMap[key][statusToIndex[status]]
 		if al != nil { // alert was already spotted with <status>, save only the latest
-			if al.Source.Triggered.Before(a.Source.Triggered) {
+			if al.AlertFields.Alert.TriggeredTime().Before(a.AlertFields.Alert.TriggeredTime()) {
 				alertDocsToDelete = append(alertDocsToDelete, al.DocId)
 				alertsMap[key][statusToIndex[status]] = &a
 			} else {
@@ -142,17 +141,17 @@ func (m *Miser) sync() error {
 	for _, alerts := range alertsMap {
 		active, resolved := alerts[0], alerts[1]
 		if resolved != nil {
-			alertsToNotify = append(alertsToNotify, resolved)
+			alertsToNotify = append(alertsToNotify, resolved.AlertFields.Alert)
 			alertDocsToDelete = append(alertDocsToDelete, resolved.DocId)
 			if active != nil {
-				if active.Source.Triggered.After(resolved.Source.Triggered) {
-					alertsToNotify = append(alertsToNotify, active)
+				if active.AlertFields.Alert.TriggeredTime().After(resolved.AlertFields.Alert.TriggeredTime()) {
+					alertsToNotify = append(alertsToNotify, active.AlertFields.Alert)
 				} else {
 					alertDocsToDelete = append(alertDocsToDelete, active.DocId)
 				}
 			}
 		} else {
-			alertsToNotify = append(alertsToNotify, active)
+			alertsToNotify = append(alertsToNotify, active.AlertFields.Alert)
 		}
 	}
 

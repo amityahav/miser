@@ -1,0 +1,14 @@
+{
+  "rule_id": "{{rule.id}}",
+  "rule_name": "{{rule.name}}",
+  "rule_type": "{{rule.type}}",
+  "alert": {
+    "alert_id": "{{alert.id}}",
+    "status": "active",
+    "triggered": "{{context.timestamp}}",
+    "matching_docs": "{{context.matchingDocuments}}",
+    "grouping_key": "{{context.group}}",
+    "context_message": "{{context.message}}",
+    "custom_data": {"key": "val"}
+  }
+}

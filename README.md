@@ -13,10 +13,6 @@ Miser will support all types of rules as long as the Action part of the alert is
 in the above demo I've created a log-threshold rule via the Kibana UI, but it can be any other rule as well.
 
 you can find the action's payloads [here](./action_documents)
-
-NOTE: action payloads contain multiple fields from several rule types all combined. 
- `matching_docs` and `grouping_key` will be populated when using Log Threshold rules while `value` will be populated when using Elastic Query rules.
-you can differentiate between alert types by the `rule_type` field in the payload.
 ## Configuration
 
 ```yaml

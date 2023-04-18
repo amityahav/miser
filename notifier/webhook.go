@@ -35,7 +35,7 @@ func NewWebhookNotifier(name, endpoint string, headers map[string]string, retrie
 	}, nil
 }
 
-func (w *Webhook) Notify(alerts []*rules.Alert) {
+func (w *Webhook) Notify(alerts []rules.Alert) {
 	for i := 0; i < w.Retries; i++ {
 		j, err := json.Marshal(alerts)
 		if err != nil {
