@@ -36,8 +36,14 @@ func NewWebhookNotifier(name, endpoint string, headers map[string]string, retrie
 }
 
 func (w *Webhook) Notify(alerts []rules.Alert) {
+	type as struct {
+		Arr []rules.Alert `json:"alerts"`
+	}
+
+	a := as{Arr: alerts}
+
 	for i := 0; i < w.Retries; i++ {
-		j, err := json.Marshal(alerts)
+		j, err := json.Marshal(a)
 		if err != nil {
 			w.logger.WithError(err).Errorf("Webhook %s", w.Name)
 			time.Sleep(time.Second)
