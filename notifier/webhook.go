@@ -3,6 +3,7 @@ package notifier
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"miser/rules"
 	"net/http"
@@ -10,19 +11,19 @@ import (
 )
 
 type Webhook struct {
-	Name     string
-	Client   http.Client
-	Endpoint string
-	Headers  map[string]string
-	Retries  int
-	logger   *logrus.Logger
+	Name        string
+	Client      http.Client
+	Endpoint    string
+	Headers     map[string]string
+	Retries     int
+	failedCache []rules.Alert
+	logger      *logrus.Logger
 }
 
 func NewWebhookNotifier(name, endpoint string, headers map[string]string, retries int) (*Webhook, error) {
 	l := logrus.New()
 	l.SetFormatter(&logrus.JSONFormatter{})
-
-	return &Webhook{
+	w := Webhook{
 		Name: name,
 		Client: http.Client{
 			Transport: http.DefaultTransport,
@@ -32,10 +33,12 @@ func NewWebhookNotifier(name, endpoint string, headers map[string]string, retrie
 		Headers:  headers,
 		Retries:  retries,
 		logger:   l,
-	}, nil
+	}
+
+	return &w, nil
 }
 
-func (w *Webhook) Notify(alerts []rules.Alert) {
+func (w *Webhook) Notify(alerts []rules.Alert) error {
 	type as struct {
 		Arr []rules.Alert `json:"alerts"`
 	}
@@ -73,10 +76,16 @@ func (w *Webhook) Notify(alerts []rules.Alert) {
 			time.Sleep(time.Second)
 			continue
 		} else {
-			break
+			return nil
 		}
 	}
+
+	return fmt.Errorf("%s webhook - url: %s", w.Name, w.Endpoint)
 }
+
+func (w *Webhook) GetType() string { return "webhook" }
+
+func (w *Webhook) GetName() string { return w.Name }
 
 func addHeaders(req *http.Request, headers map[string]string) {
 	for k, v := range headers {

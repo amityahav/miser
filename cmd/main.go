@@ -2,11 +2,13 @@ package main
 
 import (
 	"flag"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
 	"miser"
 	"miser/agent"
+	"net/http"
 )
 
 func main() {
@@ -27,15 +29,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Init Miser
-	Miser, err := agent.NewMiser(cfg)
+	// Init miser
+	m, err := agent.NewMiser(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	reg := m.GetPromRegistry()
+	go func() {
+		http.Handle("/metrics", promhttp.HandlerFor(reg, promhttp.HandlerOpts{Registry: reg}))
+		log.Fatal(http.ListenAndServe("0.0.0.0:8766", nil))
+	}()
+
 	// Start syncing
-	Miser.Logger.Info("Miser started running...")
-	err = Miser.Sync()
+	m.Logger.Info("Miser started running...")
+	err = m.Sync()
 	if err != nil {
 		log.Fatal(err)
 	}

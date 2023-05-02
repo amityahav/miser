@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/elastic/go-elasticsearch/v8"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 	"miser"
 	"miser/notifier"
@@ -19,7 +20,13 @@ type Miser struct {
 	syncInterval time.Duration
 	index        string
 	notifiers    []notifier.Notifier
+	metrics      Metrics
 	Logger       *logrus.Logger
+}
+
+type Metrics struct {
+	promReg    *prometheus.Registry
+	notifyFail *prometheus.GaugeVec
 }
 
 func NewMiser(cfg *miser.Config) (*Miser, error) {
@@ -38,8 +45,16 @@ func NewMiser(cfg *miser.Config) (*Miser, error) {
 		esClient:     c,
 		syncInterval: cfg.SyncInterval,
 		index:        cfg.AlertsIndex,
-		Logger:       logrus.New(),
+		metrics: Metrics{
+			promReg: prometheus.NewRegistry(),
+			notifyFail: prometheus.NewGaugeVec(prometheus.GaugeOpts{
+				Name: "notify_fail",
+			}, []string{"type", "name"}),
+		},
+		Logger: logrus.New(),
 	}
+
+	m.metrics.promReg.MustRegister(m.metrics.notifyFail)
 
 	for _, n := range cfg.Notifiers {
 		nt, err := notifier.NewNotifier(n)
@@ -157,10 +172,23 @@ func (m *Miser) sync() error {
 
 	if len(alertsToNotify) > 0 {
 		for _, n := range m.notifiers {
-			go n.Notify(alertsToNotify)
+			go func(notifier notifier.Notifier) {
+				labels := prometheus.Labels{
+					"type": notifier.GetType(),
+					"name": notifier.GetName()}
+
+				err = notifier.Notify(alertsToNotify)
+				if err != nil {
+					m.Logger.WithError(err).Error("failed to notify")
+					m.metrics.notifyFail.With(labels).Set(1)
+				} else {
+					m.metrics.notifyFail.With(labels).Set(0)
+				}
+			}(n)
 		}
 	}
 
+	// TODO: handle the case where some resolved alerts failed to be notified but their docs were deleted successfully.
 	if len(alertDocsToDelete) > 0 {
 		err = m.DeleteDocs(alertDocsToDelete)
 		if err != nil {
@@ -192,3 +220,5 @@ func (m *Miser) DeleteDocs(docsIds []string) error {
 
 	return nil
 }
+
+func (m *Miser) GetPromRegistry() *prometheus.Registry { return m.metrics.promReg }
