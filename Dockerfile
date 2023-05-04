@@ -1,20 +1,15 @@
 # builder
-FROM golang:1.20-alpine AS builder
+FROM golang:1.19-alpine AS builder
 
-RUN set -ex &&\
-    apk add --no-progress --no-cache \
-      gcc \
-      musl-dev \
-      git
-ENV GO111MODULE=on
+RUN apk add --no-progress --no-cache gcc musl-dev
 
 WORKDIR /app
+COPY go.* ./
 COPY . .
-RUN GOOS=linux GOARCH=amd64 go build -buildvcs=false -o miser .
+#RUN go test -tags musl
+RUN GOOS=linux GOARCH=amd64 go build -a -o miser ./cmd/main.go
 
-# image
 FROM alpine:edge
-WORKDIR /
+WORKDIR /miser
 COPY --from=builder /app/miser .
-RUN chmod +x miser
-ENTRYPOINT ["/miser"]
+ENTRYPOINT ["/miser/miser"]
